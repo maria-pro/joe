@@ -15,11 +15,10 @@ execute:
 library(tidyverse)
 library(janitor)
 library(lubridate)
+library(patchwork)
+library(ggtext)
 theme_set(theme_minimal())
 options(scipen = 100)
-
-
-
 
 ```
 
@@ -145,40 +144,46 @@ cf%>%count(category, sort=TRUE)
 Well, good, but does not look nice.. So let's "paint it"
 
 ```{r}
-cf%>%
+plot1<-cf%>%
   count(category) %>% 
   ggplot(aes(x=fct_reorder(category, desc(n)), n)) + 
   geom_col()+ 
   labs(x = "Categories", y = "Number of transactions",
-title ="Cash receipts/spending across categories",
-subtitle = "per number of transactions")+
+ title ="Cash across categories")+
   theme(
   # Hide panel borders and remove grid lines
   panel.border = element_blank(),
   panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(),
   # Change axis line
-  axis.line = element_line(colour = "black")
+  axis.line = element_line(colour = "black"),  
+  axis.text.x = element_text(angle = 90),
+ plot.title = element_textbox(hjust = 0.5,
+                                 width = unit(0.5, "npc"),
+                                 margin = margin(b = 15))
   )
 
-cf%>%
+plot2<-cf%>%
   count(day) %>% 
   ggplot(aes(x=fct_reorder(day, desc(n)), n)) + 
   geom_col()+ 
   labs(x = "Categories", y = "Number of transactions",
-title ="Cash receipts/spending across days of the week",
-subtitle = "per number of transactions")+
+title ="Cash across days of the week")+
   theme(
   panel.border = element_blank(),
   panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(),
-  axis.line = element_line(colour = "black")
+  axis.line = element_line(colour = "black"),
+  axis.text.x = element_text(angle = 90),
+plot.title = element_textbox(hjust = 0.5,
+                                 width = unit(0.5, "npc"),
+                                 margin = margin(b = 15))
   )
 ```
 And if we have a look at the dollar $ spending (where credited amount is 0) per category
 
 ```{r}
-cf%>%filter(credit_amount==0)%>%
+plot3<-cf%>%filter(credit_amount==0)%>%
   group_by(category)%>%
   summarise(category_spend=sum(debit_amount),
             n=n())%>%
@@ -186,16 +191,19 @@ cf%>%filter(credit_amount==0)%>%
              y=category_spend))+
   geom_col()+ 
   labs(x = "Categories", y = "$ value",
-title ="Cash receipts/spending across categories",
-subtitle = "$ value")+
+title ="Cash across categories")+
   theme(
   panel.border = element_blank(),
   panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(),
-  axis.line = element_line(colour = "black")
+  axis.line = element_line(colour = "black"),
+  axis.text.x = element_text(angle = 90),
+plot.title = element_textbox(hjust = 0.5,
+                                 width = unit(0.5, "npc"),
+                                 margin = margin(b = 15))
   )
 
-cf%>%filter(credit_amount==0)%>%
+plot4<-cf%>%filter(credit_amount==0)%>%
   group_by(day)%>%
   summarise(day_spend=sum(debit_amount),
             n=n())%>%
@@ -203,14 +211,18 @@ cf%>%filter(credit_amount==0)%>%
              y=day_spend))+
   geom_col()+ 
   labs(x = "Days", y = "$ value",
-title ="Cash receipts/spending across days",
-subtitle = "$ value")+
+title ="Cash across days")+
   theme(
   panel.border = element_blank(),
   panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(),
-  axis.line = element_line(colour = "black")
-  )
+  axis.line = element_line(colour = "black"),
+  axis.text.x = element_text(angle = 90),
+plot.title = element_textbox(hjust = 0.5,
+                                 width = unit(0.5, "npc"),
+                                 margin = margin(b = 15))  )
+
+(plot1|plot2)/(plot3|plot4)
 ```
 
 For a real business, this amount of Saturday transactions would raise a red flag, but - this data is from personal records, so looks like someone is having a blast off after a busy week :)
